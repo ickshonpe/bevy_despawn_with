@@ -1,13 +1,42 @@
 # Bevy Despawn With
 
-This crate implements an extension trait on `Commands`, `DespawnWithExt` which has two generic helper functions `despawn_with` and `despawn_recursive_with` that allow you to despawn all entities with a specified component with a single statement.
+This crate implements an extension trait on `Commands`, `DespawnWithCommandsExt` which has two generic helper functions `despawn_with` and `despawn_recursive_with` that allow you to despawn all entities with a specified component with a single statement.
 
-It's kind of a trivial crate but, despite the use of Marker components everywhere, I haven't seen this idea of using an extension trait out in the wild. So I thought I'd share it, as it seems quite neat.
+## Version 0.3 Update
+
+0.3 implements a second extension trait `RetainCommandsExt`, with four functions:
+* `retain`
+* `retain_mut`
+* `retain_recursive`
+* `retain_recursive_mut`
+
+that are similar to Vec's retain.
+Example:
+
+```rust
+use bevy_despawn_with::RetainCommandsExt;
+
+#[derive(Component)]
+struct DespawnTimer(f32);
+
+fn update_despawn_timers(
+    mut commands: Commands,
+    time: Res<Time>,        
+) {
+    let delta = time.delta_seconds();
+    commands.retain_recursive_mut(move |dt: &mut DespawnTimer| { 
+        dt.0 -= delta;
+        0. < dt.0   // despawns if false, that is once the time runs out
+    });
+}
+     
+```
+Might be a bit of an anti-pattern, not sure.
+
 
 ## Contrived Example
 
-Common pattern in Bevy is giving entities marker Components to easily despawn groups of entities. 
-
+Common pattern in Bevy, marker components:
 ```rust
 #[derive(Component)]
 struct MenuUiMarker;
@@ -84,7 +113,7 @@ will be despawned regardless of whether they have the specified marker component
 Add the following to your project's Cargo.toml `[dependencies]` section:
 
 ```toml
-bevy_despawn_with = "0.1"
+bevy_despawn_with = "0.3"
 ```
 and you are ready to go.
 
@@ -97,6 +126,8 @@ and you are ready to go.
 
     Will update the crate once I find
     a better alternative.
+
+    Should be more performant than query-despawning once that is fixed.
 
 ## Todo
 *  A `despawn_with_all` function that can take 

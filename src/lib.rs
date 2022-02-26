@@ -1,19 +1,23 @@
+pub mod retain;
+
 use std::marker::PhantomData;
 use bevy::ecs::system::Command;
 use bevy::prelude::*;
+
+pub use retain::RetainCommandsExt;
 
 #[derive(Component)]
 pub struct DespawnWith<C> {
     phantom_component: PhantomData<C>
 }
 
-#[derive(Component)]
 pub struct DespawnRecursiveWith<C>
 where
     C: Component
 {
     phantom_component: PhantomData<C>
 }
+
 
 impl <C> Command for DespawnWith<C> 
 where
@@ -38,13 +42,12 @@ where
         }
     }
 }
-
-pub trait DespawnWithExt {
+pub trait DespawnWithCommandsExt {
     fn despawn_with<C>(&mut self) where C: Component;
     fn despawn_recursive_with<C>(&mut self) where C: Component;
 }
 
-impl DespawnWithExt for Commands<'_, '_> {  
+impl DespawnWithCommandsExt for Commands<'_, '_> {  
     /// Despawn all entities with component C.
     fn despawn_with<C: Component>(&mut self) {
         self.add(DespawnWith::<C> { phantom_component: PhantomData } );
@@ -57,6 +60,6 @@ impl DespawnWithExt for Commands<'_, '_> {
     {
         self.add(DespawnRecursiveWith::<C> { phantom_component: PhantomData } );
     }
+
+  
 }
-
-
