@@ -36,7 +36,7 @@ Might be a bit of an anti-pattern, not sure.
 
 ## Contrived Example
 
-Common pattern in Bevy, marker components:
+Marker components are a common pattern in Bevy:
 ```rust
 #[derive(Component)]
 struct MenuUiMarker;
@@ -46,7 +46,7 @@ fn spawn_menu(mut commands: Commands) {
         ..Default::default()
     })
     .insert(MenuUiMarker);
-    // .. 
+    // .. and so on.
     // The developer spawns a bunch of UI entities and then 
     // inserts a MenuUiMarker component for each one.
 }
@@ -73,7 +73,7 @@ impl Plugin for MenuScreenPlugin {
             .with_system(despawn_all::<MenuUiMarker>)
         )
         // ... 
-        // rest of whatever TitleScreenPlugin needs to work
+        // rest of whatever MenuScreenPlugin needs to work
         ;
     }
 }
@@ -96,8 +96,7 @@ fn despawn_system(mut commands: Commands) {
     // entities with MenuUiMarker are already despawned.
 }
 
-// so you can replace the system in the menu screen example with:
-
+// so the despawn_all system in the menu screen example becomes:
 fn despawn_all<C: Component>(
     mut commands: Commands,
 ) {
