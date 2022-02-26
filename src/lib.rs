@@ -1,9 +1,3 @@
-//! The implementation sucks as it allocates a Vec every time.
-//! Could use a global static buffer or a resource?
-//! Probably some built in way around it I don't know of.
-//! Will immediately update the crate once I work it out.
-
-
 use std::marker::PhantomData;
 use bevy::ecs::system::Command;
 use bevy::prelude::*;
