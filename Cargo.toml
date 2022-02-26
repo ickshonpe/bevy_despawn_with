@@ -1,10 +1,10 @@
 [package]
 name = "bevy_despawn_with"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 keywords = ["bevy", "gamedev", "despawn", "ecs"]
-categories = ["game-develoment"]
+categories = ["game-development"]
 repository = "https://github.com/ickshonpe/bevy_despawn_with"
 description = "Bevy extension trait for despawning marked entities"
 readme = "README.md"

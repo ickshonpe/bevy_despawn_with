@@ -16,7 +16,7 @@ fn spawn_menu(mut commands: Commands) {
     commands.spawn_bundle(NodeBundle {
         ..Default::default()
     })
-    .insert(MenuUiElement);
+    .insert(MenuUiMarker);
     // .. 
     // The developer spawns a bunch of UI entities and then 
     // inserts a MenuUiMarker component for each one.
