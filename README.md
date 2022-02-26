@@ -4,25 +4,6 @@ This crate implements an extension trait on `Commands`, `DespawnWithExt` which h
 
 It's kind of a trivial crate but, despite the use of Marker components everywhere, I haven't seen this idea of using an extension trait out in the wild. So I thought I'd share it, as it seems quite neat.
 
-## Version 0.2 Update
-
-Added two new functions to `DespawnWithExt`, `retain` and `retain_recursive` that 
-despawn entities with components that fail to satisfy a given predicate.
-
-For example, the following despawns all entities with a translation outside an area 1000 units square.
-
-```rust
-commands.retain(|tf: &GlobalTransform| {
-    0.0 <= tf.translation.x
-    &&
-    tf.translation.x < 1000.0
-    &&
-    0.0 <= tf.translation.y
-    &&
-    tf.translation.y < 1000.0
-});
-```
-
 ## Contrived Example
 
 Common pattern in Bevy is giving entities marker Components to easily despawn groups of entities. 
