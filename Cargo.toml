@@ -1,0 +1,12 @@
+[package]
+name = "bevy_despawn_with"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+keywords = ["bevy", "gamedev", "despawn", "ecs"]
+categories = ["game-develoment"]
+repository = "https://github.com/ickshonpe/bevy_despawn_with"
+readme = "README.md"
+
+[dependencies]
+bevy = { version = "0.6", features = [] }
