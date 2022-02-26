@@ -6,6 +6,7 @@ license = "MIT OR Apache-2.0"
 keywords = ["bevy", "gamedev", "despawn", "ecs"]
 categories = ["game-develoment"]
 repository = "https://github.com/ickshonpe/bevy_despawn_with"
+description = "Bevy extension trait for despawning marked entities"
 readme = "README.md"
 
 [dependencies]
