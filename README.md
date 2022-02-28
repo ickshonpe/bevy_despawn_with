@@ -11,7 +11,7 @@ This crate implements an extension trait on `Commands`, `DespawnWithCommandsExt`
 * `retain_recursive_mut`
 
 that are similar to Vec's retain.
-Example:
+Example of what is very probably a terrible anti-pattern:
 
 ```rust
 use bevy_despawn_with::RetainCommandsExt;
@@ -28,10 +28,8 @@ fn update_despawn_timers(
         dt.0 -= delta;
         0. < dt.0   // despawns if false, that is once the time runs out
     });
-}
-     
+}     
 ```
-Might be a bit of an anti-pattern, not sure.
 
 
 ## Contrived Example
@@ -119,15 +117,3 @@ and you are ready to go.
 ## Notes
 
 * Supports Bevy 0.6
-* Not optimised, allocates a Vec every time. 
-
-    Only easy way I know how to avoid the allocation is to use unsafe.
-
-    Will update the crate once I find
-    a better alternative.
-
-    Should be more performant than query-despawning once that is fixed.
-
-## Todo
-*  A `despawn_with_all` function that can take 
-more than one marker component, or maybe the existing functions could be made to accept a tuple of components.
