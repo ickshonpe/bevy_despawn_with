@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 use bevy::ecs::system::Command;
 use bevy::prelude::*;
+use super::BUFFER;
 
 #[derive(Component)]
 pub struct Retain<C, P> 
@@ -44,13 +45,13 @@ where
     P: Fn(&C) -> bool + Send + Sync + 'static
 {
     fn write(self, world: &mut World) {
-        let mut queue: Vec<Entity> = vec![];
+        let mut buffer = BUFFER.lock().unwrap();
         for (e, c) in world.query::<(Entity, &C)>().iter(world) {
             if !(self.predicate)(&c) {
-                queue.push(e);
+                buffer.push(e);
             }
         }
-        for entity in queue.into_iter() {
+        for entity in buffer.drain(..) {
             world.despawn(entity);
         }
     }
@@ -62,13 +63,13 @@ where
     P: Fn(&C) -> bool + Send + Sync + 'static,
 {
     fn write(self, world: &mut World) {
-        let mut queue: Vec<Entity> = vec![];
+        let mut buffer = BUFFER.lock().unwrap();
         for (e, c) in world.query::<(Entity, &C)>().iter(world) {
             if !(self.predicate)(&c) {
-                queue.push(e);
+                buffer.push(e);
             }
         }
-        for entity in queue.into_iter() {
+        for entity in buffer.drain(..) {
             despawn_with_children_recursive(world, entity);
         }
     }
@@ -80,13 +81,13 @@ where
     P: Fn(&mut C) -> bool + Send + Sync + 'static
 {
     fn write(self, world: &mut World) {
-        let mut queue: Vec<Entity> = vec![];
+        let mut buffer = BUFFER.lock().unwrap();
         for (e, mut c) in world.query::<(Entity, &mut C)>().iter_mut(world) {
             if !(self.predicate)(&mut c) {
-                queue.push(e);
+                buffer.push(e);
             }
         }
-        for entity in queue.into_iter() {
+        for entity in buffer.drain(..) {
             world.despawn(entity);
         }
     }
@@ -98,13 +99,13 @@ where
     P: Fn(&mut C) -> bool + Send + Sync + 'static,
 {
     fn write(self, world: &mut World) {
-        let mut queue: Vec<Entity> = vec![];
+        let mut buffer = BUFFER.lock().unwrap();
         for (e, mut c) in world.query::<(Entity, &mut C)>().iter_mut(world) {
             if !(self.predicate)(&mut c) {
-                queue.push(e);
+                buffer.push(e);
             }
         }
-        for entity in queue.into_iter() {
+        for entity in buffer.drain(..) {
             despawn_with_children_recursive(world, entity);
         }
     }
