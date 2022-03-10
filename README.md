@@ -41,7 +41,7 @@ fn update_despawn_timers(
     });
 }     
 ```
-
+Remember that Commands are not applied immediately. The DespawnTimer components won't be updated until the next stage boundary.
 
 ## Contrived Example
 
