@@ -2,6 +2,10 @@
 
 This crate implements an extension trait on `Commands`, `DespawnWithCommandsExt` which has two generic helper functions `despawn_with` and `despawn_recursive_with` that allow you to despawn all entities with a specified component with a single statement.
 
+## Version 0.6
+
+Supports Bevy 0.7
+
 ## Version 0.5
 
 ```despawn_with_all``` and ```despawn_with_all_recursive``` added to DespawnWithCommandsExt that takes a tuple of up to five components:
@@ -121,10 +125,7 @@ will be despawned regardless of whether they have the specified marker component
 Add the following to your project's Cargo.toml `[dependencies]` section:
 
 ```toml
-bevy_despawn_with = "0.5"
+bevy_despawn_with = "0.6"
 ```
 and you are ready to go.
 
-## Notes
-
-* Supports Bevy 0.6

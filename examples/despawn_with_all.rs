@@ -37,6 +37,7 @@ fn main() {
     .add_system(count.before("despawn"))                    // 2
     .add_system(
         (|mut commands: Commands| {
+            println!("Despawn all entities with both components A and B.");
             commands.despawn_with_all::<(A, B)>();          // 3
         }).label("despawn")
     )
