@@ -1,52 +1,33 @@
 use std::marker::PhantomData;
+use bevy::ecs::query::Fetch;
+use bevy::ecs::query::FilterFetch;
+use bevy::ecs::query::WorldQuery;
 use bevy::ecs::system::Command;
 use bevy::prelude::*;
 use super::BUFFER;
 
-#[derive(Component)]
-struct Retain<C, P> 
-where 
-    P: Fn(&C) -> bool
+struct Retain<P, Q, F=()> where
+    P: 'static + Sync + Send,
+    P: FnMut(<<Q as WorldQuery>::Fetch as Fetch<'_, '_>>::Item) -> bool,
+    Q: WorldQuery +'static + Sync + Send,
+    F: WorldQuery + 'static + Sync + Send,
+    F::Fetch: FilterFetch,
 {
     predicate: P,
-    phantom: PhantomData<C>
+    phantom: PhantomData<(F, Q)>,    
 }
 
-#[derive(Component)]
-struct RetainRecursive<C, P> 
-where 
-    P: Fn(&C) -> bool
-{
-    predicate: P,
-    phantom: PhantomData<C>
-}
-
-#[derive(Component)]
-struct RetainMut<C, P> 
-where 
-    P: Fn(&mut C) -> bool
-{
-    predicate: P,
-    phantom: PhantomData<C>
-}
-
-#[derive(Component)]
-struct RetainRecursiveMut<C, P> 
-where 
-    P: Fn(&mut C) -> bool
-{
-    predicate: P,
-    phantom: PhantomData<C>
-}
-
-impl <C, P> Command for Retain<C, P>
+impl <P, Q, F> Command for Retain< P, Q, F> 
 where
-    C: Component,
-    P: Fn(&C) -> bool + Send + Sync + 'static
+    P: 'static + Sync + Send,
+    P: FnMut(<<Q as WorldQuery>::Fetch as Fetch<'_, '_>>::Item) -> bool,
+    Q: WorldQuery +'static + Sync + Send,
+    F: WorldQuery + 'static + Sync + Send,
+    F::Fetch: FilterFetch,
 {
-    fn write(self, world: &mut World) {
+    fn write(mut self, world: &mut World) {
         let mut buffer = BUFFER.lock().unwrap();
-        for (e, c) in world.query::<(Entity, &C)>().iter(world) {
+        for (e, c) in world.query_filtered::<(Entity, Q), F>().iter_mut(world) {
             if !(self.predicate)(c) {
                 buffer.push(e);
             }
@@ -57,14 +38,28 @@ where
     }
 }
 
-impl <C, P> Command for RetainRecursive<C, P>
-where
-    C: Component,
-    P: Fn(&C) -> bool + Send + Sync + 'static,
+struct RetainRecursive<P, Q, F=()> where
+    P: 'static + Sync + Send,
+    P: FnMut(<<Q as WorldQuery>::Fetch as Fetch<'_, '_>>::Item) -> bool,
+    Q: WorldQuery +'static + Sync + Send,
+    F: WorldQuery + 'static + Sync + Send,
+    F::Fetch: FilterFetch,
 {
-    fn write(self, world: &mut World) {
+    predicate: P,
+    phantom: PhantomData<(F, Q)>,    
+}
+
+impl <P, Q, F> Command for RetainRecursive< P, Q, F> 
+where
+    P: 'static + Sync + Send,
+    P: FnMut(<<Q as WorldQuery>::Fetch as Fetch<'_, '_>>::Item) -> bool,
+    Q: WorldQuery +'static + Sync + Send,
+    F: WorldQuery + 'static + Sync + Send,
+    F::Fetch: FilterFetch,
+{
+    fn write(mut self, world: &mut World) {
         let mut buffer = BUFFER.lock().unwrap();
-        for (e, c) in world.query::<(Entity, &C)>().iter(world) {
+        for (e, c) in world.query_filtered::<(Entity, Q), F>().iter_mut(world) {
             if !(self.predicate)(c) {
                 buffer.push(e);
             }
@@ -75,114 +70,50 @@ where
     }
 }
 
-impl <C, P> Command for RetainMut<C, P>
-where
-    C: Component,
-    P: Fn(&mut C) -> bool + Send + Sync + 'static
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        for (e, mut c) in world.query::<(Entity, &mut C)>().iter_mut(world) {
-            if !(self.predicate)(&mut c) {
-                buffer.push(e);
-            }
-        }
-        for entity in buffer.drain(..) {
-            world.despawn(entity);
-        }
-    }
+pub trait RetainCommandsExt<P> {
+    fn retain<Q, F>(&mut self, predicate: P)
+    where
+        P: 'static + Sync + Send,
+        P: FnMut(<<Q as WorldQuery>::Fetch as Fetch<'_, '_>>::Item) -> bool,
+        Q: WorldQuery +'static + Sync + Send,
+        F: WorldQuery + 'static + Sync + Send,
+        F::Fetch: FilterFetch;
+
+    fn retain_recursive<Q, F>(&mut self, predicate: P)
+    where
+        P: 'static + Sync + Send,
+        P: FnMut(<<Q as WorldQuery>::Fetch as Fetch<'_, '_>>::Item) -> bool,
+        Q: WorldQuery +'static + Sync + Send,
+        F: WorldQuery + 'static + Sync + Send,
+        F::Fetch: FilterFetch;
 }
 
-impl <C, P> Command for RetainRecursiveMut<C, P>
-where
-    C: Component,
-    P: Fn(&mut C) -> bool + Send + Sync + 'static,
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        for (e, mut c) in world.query::<(Entity, &mut C)>().iter_mut(world) {
-            if !(self.predicate)(&mut c) {
-                buffer.push(e);
-            }
-        }
-        for entity in buffer.drain(..) {
-            despawn_with_children_recursive(world, entity);
-        }
-    }
-}
-
-pub trait RetainCommandsExt {
-    fn retain<C, P>(&mut self, predicate: P)
+impl <P> RetainCommandsExt<P> for Commands<'_, '_> {
+    fn retain<Q, F>(&mut self, predicate: P)
     where
-        C: Component,
-        P: Fn(&C) -> bool + Send + Sync + 'static;
-
-    fn retain_recursive<C, P>(&mut self, predicate: P)
-    where        
-        C: Component,
-        P: Fn(&C) -> bool + Send + Sync + 'static;
-
-    fn retain_mut<C, P>(&mut self, predicate: P)
-    where
-        C: Component,
-        P: Fn(&mut C) -> bool + Send + Sync + 'static;
-
-    fn retain_recursive_mut<C, P>(&mut self, predicate: P)
-    where        
-        C: Component,
-        P: Fn(&mut C) -> bool + Send + Sync + 'static;
-}
-
-impl <'w, 's> RetainCommandsExt for Commands<'w, 's> {
-    /// Despawn all entities with a component C that fails to satisfy
-    /// the given predicate.
-    fn retain<C, P>(&mut self, predicate: P)
-    where
-        C: Component,
-        P: Fn(&C) -> bool + Send + Sync + 'static
+        P: 'static + Sync + Send,
+        P: FnMut(<<Q as WorldQuery>::Fetch as Fetch<'_, '_>>::Item) -> bool,
+        Q: WorldQuery +'static + Sync + Send,
+        F: WorldQuery + 'static + Sync + Send,
+        F::Fetch: FilterFetch 
     {
-        self.add(Retain::<C, P> { 
-            predicate,
-            phantom: PhantomData
-        });
+        self.add(Retain::<P, Q, F> { 
+            predicate, 
+            phantom: PhantomData }
+        );      
     }
 
-    /// Recursively despawn all entities with a component C that fails to satisfy
-    /// the given predicate.
-    fn retain_recursive<C, P>(&mut self, predicate: P)
+    fn retain_recursive<Q, F>(&mut self, predicate: P)
     where
-        C: Component,
-        P: Fn(&C) -> bool + Send + Sync + 'static 
+        P: 'static + Sync + Send,
+        P: FnMut(<<Q as WorldQuery>::Fetch as Fetch<'_, '_>>::Item) -> bool,
+        Q: WorldQuery +'static + Sync + Send,
+        F: WorldQuery + 'static + Sync + Send,
+        F::Fetch: FilterFetch 
     {
-        self.add(RetainRecursive::<C, P> { 
-            predicate,
-            phantom: PhantomData
-        });
-    }
-
-    /// Despawn all entities with a component C that fails to satisfy
-    /// the given predicate.
-    fn retain_mut<C, P>(&mut self, predicate: P)
-    where
-        C: Component,
-        P: Fn(&mut C) -> bool + Send + Sync + 'static
-    {
-        self.add(RetainMut::<C, P> { 
-            predicate,
-            phantom: PhantomData
-        });
-    }
-
-    /// Recursively despawn all entities with a component C that fails to satisfy
-    /// the given predicate.
-    fn retain_recursive_mut<C, P>(&mut self, predicate: P)
-    where
-        C: Component,
-        P: Fn(&mut C) -> bool + Send + Sync + 'static 
-    {
-        self.add(RetainRecursiveMut::<C, P> { 
-            predicate,
-            phantom: PhantomData
-        });
-    }
+        self.add(RetainRecursive::<P, Q, F> { 
+            predicate, 
+            phantom: PhantomData }
+        );     
+    }    
 }

@@ -25,7 +25,6 @@ struct DespawnAllRecursive<F: WorldQuery> where
     F::Fetch: FilterFetch,
 {
     phantom: PhantomData<F>,
-    
 }
 
 impl <F: WorldQuery> Command for DespawnAll<F> 

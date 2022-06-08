@@ -4,6 +4,39 @@ This crate implements an extension trait on `Commands`, `DespawnAllCommandsExt` 
 
 Supports Bevy version 0.7.
 
+## Version 0.8
+
+Revamped `RetainCommandsExt`, now only has two methods
+* `retain`
+* `retain_recursive`
+
+Similar to Vec's retain, but for queries.
+Example of what is very probably a terrible anti-pattern:
+
+```rust
+use bevy_despawn_with::retain::*;
+
+#[derive(Component)]
+struct DespawnTimer(f32);
+
+fn update_despawn_timers(
+    mut commands: Commands,
+    time: Res<Time>,        
+) {
+    let delta = time.delta_seconds();
+    commands.retain::<&mut DespawnTimer, ()>(move |despawn_timer| { 
+        dt.0 -= delta;
+        0. < dt.0   // despawns if false, that is once the time runs out
+    });
+}     
+```
+Remember that Commands are not applied immediately. The DespawnTimer components won't be updated until the next stage boundary.
+
+Feature-gated for all its silliness, to enable ```retain``` use:
+```toml
+bevy_despawn_with = { version = "0.8", features = ["retain"] }
+```
+
 ## Version 0.7
 
 Massive API improvements 
@@ -19,44 +52,10 @@ Massive API improvements
 
 No longer uses SystemState. Performance should be much better (assumed, not benchmarked).
 
-`RetainCommandsExt` is unchanged, but feature-gated for all its silliness. To enable ```retain``` use:
-```toml
-bevy_despawn_with = { version = "0.7", features = ["retain"] }
-```
-
 ## Version 0.6
 
 Adds Bevy 0.7 support.
 
-## Version 0.3 Update
-
-0.3 implements a second extension trait `RetainCommandsExt`, with four methods:
-* `retain`
-* `retain_mut`
-* `retain_recursive`
-* `retain_recursive_mut`
-
-that are similar to Vec's retain.
-Example of what is very probably a terrible anti-pattern:
-
-```rust
-use bevy_despawn_with::retain::*;
-
-#[derive(Component)]
-struct DespawnTimer(f32);
-
-fn update_despawn_timers(
-    mut commands: Commands,
-    time: Res<Time>,        
-) {
-    let delta = time.delta_seconds();
-    commands.retain_recursive_mut(move |dt: &mut DespawnTimer| { 
-        dt.0 -= delta;
-        0. < dt.0   // despawns if false, that is once the time runs out
-    });
-}     
-```
-Remember that Commands are not applied immediately. The DespawnTimer components won't be updated until the next stage boundary.
 #
 ## Contrived Example & Motivation
 
@@ -152,3 +151,13 @@ bevy_despawn_with = "0.7"
 ```
 and you are ready to go.
 
+#
+
+## Examples
+
+```
+cargo run --example despawn_with
+cargo run --example despawn_without
+cargo run --example retain --features retain
+cargo run --example despawn_timers --features retain
+```
