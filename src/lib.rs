@@ -1,227 +1,85 @@
+#[cfg(feature = "retain")]
 pub mod retain;
 
+use bevy::ecs::query::FilterFetch;
+use bevy::ecs::query::WorldQuery;
+use bevy::ecs::system::Command;
+use bevy::prelude::*;
+use lazy_static::*;
 use std::marker::PhantomData;
 use std::sync::Mutex;
-use bevy::ecs::system::Command;
-use bevy::ecs::system::SystemState;
-use bevy::prelude::*;
-pub use retain::RetainCommandsExt;
-use lazy_static::*;
 
 lazy_static! {
     static ref BUFFER: Mutex<Vec<Entity>> = Mutex::new(vec![]);
 }
-pub struct DespawnWith<C> 
+
+struct DespawnAll<F: WorldQuery> where
+    F: 'static + Sync + Send,
+    F::Fetch: FilterFetch,
 {
-    phantom_component: PhantomData<C>
+    phantom: PhantomData<F>,    
 }
 
-pub struct DespawnRecursiveWith<C>
-where
-    C: Component
+struct DespawnAllRecursive<F: WorldQuery> where
+    F: 'static + Sync + Send,
+    F::Fetch: FilterFetch,
 {
-    phantom_component: PhantomData<C>
+    phantom: PhantomData<F>,
+    
 }
 
-
-impl <C> Command for DespawnWith<C> 
+impl <F: WorldQuery> Command for DespawnAll<F> 
 where
-    C: Component,
+    F: Sync + Send,
+    F::Fetch: FilterFetch,
 {
-    fn write(self, world: &mut World) {
+    fn write(self, world: &mut bevy::prelude::World) {
         let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, With<C>>>::new(world).get(world).iter());
+        buffer.extend(world.query_filtered::<Entity, F>().iter(world));
         for entity in buffer.drain(..) {
             world.despawn(entity);
         }
     }
 }
 
-pub struct DespawnWithAll<B> 
-{
-    phantom_component: PhantomData<B>
-}
-
-impl <A, B> Command for DespawnWithAll<(A, B)> 
+impl <F: WorldQuery> Command for DespawnAllRecursive<F> 
 where
-    A: Component,
-    B: Component,
+    F: Sync + Send,
+    F::Fetch: FilterFetch,
 {
-    fn write(self, world: &mut World) {
+    fn write(self, world: &mut bevy::prelude::World) {
         let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, (With<A>, With<B>)>>::new(world).get(world).iter());
-        for entity in buffer.drain(..) {
-            world.despawn(entity);
-        }
-    }
-}
-
-impl <A, B, C> Command for DespawnWithAll<(A, B, C)> 
-where
-    A: Component,
-    B: Component,
-    C: Component,
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, (With<A>, With<B>, With<C>)>>::new(world).get(world).iter());
-        for entity in buffer.drain(..) {
-            world.despawn(entity);
-        }
-    }
-}
-
-impl <A, B, C, D> Command for DespawnWithAll<(A, B, C, D)> 
-where
-    A: Component,
-    B: Component,
-    C: Component,
-    D: Component,
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, (With<A>, With<B>, With<C>, With<D>)>>::new(world).get(world).iter());
-        for entity in buffer.drain(..) {
-            world.despawn(entity);
-        }
-    }
-}
-
-impl <A, B, C, D, E> Command for DespawnWithAll<(A, B, C, D, E)> 
-where
-    A: Component,
-    B: Component,
-    C: Component,
-    D: Component,
-    E: Component,
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, (With<A>, With<B>, With<C>, With<D>, With<E>)>>::new(world).get(world).iter());
-        for entity in buffer.drain(..) {
-            world.despawn(entity);
-        }
-    }
-}
-
-
-impl <C> Command for DespawnRecursiveWith<C> 
-where
-    C: Component,
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, With<C>>>::new(world).get(world).iter());
+        buffer.extend(world.query_filtered::<Entity, F>().iter(world));
         for entity in buffer.drain(..) {
             despawn_with_children_recursive(world, entity);
         }
     }
 }
 
-pub struct DespawnWithAllRecursive<B> 
-{
-    phantom_component: PhantomData<B>
-}
-
-impl <A, B> Command for DespawnWithAllRecursive<(A, B)> 
-where
-    A: Component,
-    B: Component,
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, (With<A>, With<B>)>>::new(world).get(world).iter());
-        for entity in buffer.drain(..) {
-            despawn_with_children_recursive(world, entity);
-        }
-    }
-}
-
-impl <A, B, C> Command for DespawnWithAllRecursive<(A, B, C)> 
-where
-    A: Component,
-    B: Component,
-    C: Component,
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, (With<A>, With<B>, With<C>)>>::new(world).get(world).iter());
-        for entity in buffer.drain(..) {
-            despawn_with_children_recursive(world, entity);
-        }
-    }
-}
-
-impl <A, B, C, D> Command for DespawnWithAllRecursive<(A, B, C, D)> 
-where
-    A: Component,
-    B: Component,
-    C: Component,
-    D: Component,
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, (With<A>, With<B>, With<C>, With<D>)>>::new(world).get(world).iter());
-        for entity in buffer.drain(..) {
-            despawn_with_children_recursive(world, entity);
-        }
-    }
-}
-
-
-impl <A, B, C, D, E> Command for DespawnWithAllRecursive<(A, B, C, D, E)> 
-where
-    A: Component,
-    B: Component,
-    C: Component,
-    D: Component,
-    E: Component,
-{
-    fn write(self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(SystemState::<Query<Entity, (With<A>, With<B>, With<C>, With<D>, With<E>)>>::new(world).get(world).iter());
-        for entity in buffer.drain(..) {
-            despawn_with_children_recursive(world, entity);
-        }
-    }
-}
-
-pub trait DespawnWithCommandsExt {
-    fn despawn_with<C>(&mut self) where C: Component;
-    fn despawn_with_all<X>(&mut self)
+pub trait DespawnAllCommandsExt {
+    fn despawn_all<F>(&mut self) 
     where 
-        DespawnWithAll<X>: Command;
-    fn despawn_recursive_with<C>(&mut self) where C: Component;
-    fn despawn_with_all_recursive<X>(&mut self)
-    where 
-        DespawnWithAllRecursive<X>: Command;
-}
+        F: WorldQuery + 'static + Sync + Send,
+        F::Fetch: FilterFetch;
 
-impl DespawnWithCommandsExt for Commands<'_, '_> {
-    /// Despawn all entities with component C. 
-    fn despawn_with<C: Component>(&mut self) {
-        self.add(DespawnWith::<C> { phantom_component: PhantomData } );
-    }
-
-    /// Despawn all entities with component C.
-    fn despawn_with_all<X>(&mut self)
-    where 
-        DespawnWithAll<X>: Command {
-        self.add(DespawnWithAll::<X> { phantom_component: PhantomData } );
-    }
-
-    /// Despawn all entities with component C, and despawn all their descendants regardless of whether they have C.
-    fn despawn_recursive_with<C>(&mut self)
+    fn despawn_all_recursive<F>(&mut self) 
     where
-        C: Component
-    {
-        self.add(DespawnRecursiveWith::<C> { phantom_component: PhantomData } );
+        F: WorldQuery + 'static + Sync + Send,
+        F::Fetch: FilterFetch;
+}
+
+impl DespawnAllCommandsExt for Commands<'_, '_> {
+    fn despawn_all<F>(&mut self) 
+    where 
+        F: WorldQuery + 'static + Sync + Send,
+        F::Fetch: FilterFetch {
+        self.add(DespawnAll::<F> { phantom: PhantomData });
     }
 
-    /// Despawn all entities with component C.
-    fn despawn_with_all_recursive<X>(&mut self)
-    where 
-        DespawnWithAllRecursive<X>: Command {
-        self.add(DespawnWithAllRecursive::<X> { phantom_component: PhantomData } );
+    fn despawn_all_recursive<F>(&mut self) 
+    where
+        F: WorldQuery + 'static + Sync + Send,
+        F::Fetch: FilterFetch {
+            self.add(DespawnAllRecursive::<F> { phantom: PhantomData });
     }
 }

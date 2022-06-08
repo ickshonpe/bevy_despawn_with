@@ -1,25 +1,36 @@
 # Bevy Despawn With
 
-This crate implements an extension trait on `Commands`, `DespawnWithCommandsExt` which has two generic helper functions `despawn_with` and `despawn_recursive_with` that allow you to despawn all entities with a specified component with a single statement.
+This crate implements an extension trait on `Commands`, `DespawnAllCommandsExt` which has two methods `despawn_all` and `despawn_all_recursive` that allow you to despawn all entities that satisfy a given query filter with a single statement.
+
+Supports Bevy version 0.7.
+
+## Version 0.7
+
+Massive API improvements 
+* `despawn_with` and `despawn_with_recursive` renamed to `despawn_all` and `despawn_all_recursive`.
+* The methods take a query filter instead of a component tuple. For example:
+
+    ```rust
+    commands.despawn_all::<(With<People>, With<Shoes>, Without<Laces>)>();
+    ```
+    despawns all people wearing shoes without laces.
+
+* There are no seperate `despawn_with_all` methods any more.
+
+No longer uses SystemState. Performance should be much better (assumed, not benchmarked).
+
+`RetainCommandsExt` is unchanged, but feature-gated for all its silliness. To enable ```retain``` use:
+```toml
+bevy_despawn_with = { version = "0.7", features = ["retain"] }
+```
 
 ## Version 0.6
 
-Supports Bevy 0.7
-
-## Version 0.5
-
-```despawn_with_all``` and ```despawn_with_all_recursive``` added to DespawnWithCommandsExt that takes a tuple of up to five components:
-
-```rust
-    // despawns any entity which has
-    // all of the components A, B, and C 
-    commands.despawn_with_all::<(A, B, C)>();
-```
-
+Adds Bevy 0.7 support.
 
 ## Version 0.3 Update
 
-0.3 implements a second extension trait `RetainCommandsExt`, with four functions:
+0.3 implements a second extension trait `RetainCommandsExt`, with four methods:
 * `retain`
 * `retain_mut`
 * `retain_recursive`
@@ -29,7 +40,7 @@ that are similar to Vec's retain.
 Example of what is very probably a terrible anti-pattern:
 
 ```rust
-use bevy_despawn_with::RetainCommandsExt;
+use bevy_despawn_with::retain::*;
 
 #[derive(Component)]
 struct DespawnTimer(f32);
@@ -46,8 +57,8 @@ fn update_despawn_timers(
 }     
 ```
 Remember that Commands are not applied immediately. The DespawnTimer components won't be updated until the next stage boundary.
-
-## Contrived Example
+#
+## Contrived Example & Motivation
 
 Marker components are a common pattern in Bevy:
 ```rust
@@ -92,40 +103,52 @@ impl Plugin for MenuScreenPlugin {
 }
 ```
 
-The `DespawnWithExt` makes this a little more ergonomic:
+`DespawnAllCommandsExt` makes this a little more ergonomic:
 
 ```rust
-use bevy_despawn_with::DespawnWithExt;
+use bevy_despawn_with::*;
 
 fn despawn_system(mut commands: Commands) {
+
     // Despawn all entities with a MenuUiMarker component
-    commands.despawn_with::<MenuUiMarker>();
+    commands.despawn_all::<With<MenuUiMarker>>();
 
-    // Despawn all entities with a MenUiMarker component, 
+    // Despawn all entities without a SomeOtherMarker component, 
     // and despawn those entities descendants.
-    commands.despawn_recursive_with::<MenuUiMarker>();
+    commands.despawn_all_recursive::<Without<SomeOtherMarker>>();
 
-    // .. second statement here does nothing of course as all
-    // entities with MenuUiMarker are already despawned.
-}
 
-// so the despawn_all system in the menu screen example becomes:
-fn despawn_all<C: Component>(
-    mut commands: Commands,
-) {
-    commands.despawn_with::<C>(entity);
+    // Methods can take any query filter.
+    // The following despawns any entity with a MenuUiMarker 
+    // component, without a SomeOtherMarker component, 
+    // and/or a changed GlobalTransform.
+    commands.despawn_all::<(Or<
+        With<MenUiMarker>, 
+        Without<SomeOtherMarker>, 
+        Changed<GlobalTransform>
+    )>();
 }
 ```
+so if we want we could replace the despawn_all system in the menu screen example with:
+```rust
+app.add_system_set(
+    SystemSet::on_exit(AppState::MenuScreen)
+    .with_system(|mut commands: Commands| 
+        commands.despawn_all::<With<MenuUiMarker>>()
+    )
+);
+```
 
-The descendants of entities despawned with `despawn_recursive_with` 
-will be despawned regardless of whether they have the specified marker component.
+The descendants of entities despawned with `despawn_all_recursive` 
+will be despawned regardless of whether they satisfy the query filter or not.
+#
 
 ## Usage
 
 Add the following to your project's Cargo.toml `[dependencies]` section:
 
 ```toml
-bevy_despawn_with = "0.6"
+bevy_despawn_with = "0.7"
 ```
 and you are ready to go.
 

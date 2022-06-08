@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_despawn_with::DespawnWithCommandsExt;
+use bevy_despawn_with::*;
 
 // 1. spawn 30 entities
 //  * 10 with A components
@@ -24,27 +24,30 @@ fn count(
     let a_n = query_a.iter().count();
     let b_n = query_b.iter().count();
     let ab_n = query_ab.iter().count();
-    println!("a_n = {a_n}, \t b_n = {b_n}, \t ab_n = {ab_n}");
+    println!("\tnumber of entities with component A = {a_n}");
+    println!("\tnumber of entities with component B = {b_n}");
+    println!("\tnumber of entities with both components A and B = {ab_n}");
 }
 
 fn main() {
     App::new()
-    .add_startup_system(|mut commands: Commands| {          // 1
+    .add_startup_system(|mut commands: Commands| { // 1
         commands.spawn_batch((0..10).map(|_| (A, B)));
         commands.spawn_batch((0..10).map(|_| (A,)));
         commands.spawn_batch((0..10).map(|_| (B,)));
+        println!("Spawned 30 entities:");
     })
-    .add_system(count.before("despawn"))                    // 2
+    .add_system(count.before("despawn")) // 2
     .add_system(
         (|mut commands: Commands| {
-            println!("Despawn all entities with both components A and B.");
-            commands.despawn_with_all::<(A, B)>();          // 3
+            commands.despawn_all::<(With<A>, With<B>)>(); // 3
+            println!();
+            println!("After despawning all entities with both components A and B:");
         }).label("despawn")
     )
     .add_system_to_stage(
         CoreStage::PostUpdate,
-        count.after("despawn")                              // 4
+        count.after("despawn") // 4
     )
     .run();
-
 }

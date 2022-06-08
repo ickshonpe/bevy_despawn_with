@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use super::BUFFER;
 
 #[derive(Component)]
-pub struct Retain<C, P> 
+struct Retain<C, P> 
 where 
     P: Fn(&C) -> bool
 {
@@ -13,7 +13,7 @@ where
 }
 
 #[derive(Component)]
-pub struct RetainRecursive<C, P> 
+struct RetainRecursive<C, P> 
 where 
     P: Fn(&C) -> bool
 {
@@ -22,7 +22,7 @@ where
 }
 
 #[derive(Component)]
-pub struct RetainMut<C, P> 
+struct RetainMut<C, P> 
 where 
     P: Fn(&mut C) -> bool
 {
@@ -31,7 +31,7 @@ where
 }
 
 #[derive(Component)]
-pub struct RetainRecursiveMut<C, P> 
+struct RetainRecursiveMut<C, P> 
 where 
     P: Fn(&mut C) -> bool
 {
@@ -47,7 +47,7 @@ where
     fn write(self, world: &mut World) {
         let mut buffer = BUFFER.lock().unwrap();
         for (e, c) in world.query::<(Entity, &C)>().iter(world) {
-            if !(self.predicate)(&c) {
+            if !(self.predicate)(c) {
                 buffer.push(e);
             }
         }
@@ -65,7 +65,7 @@ where
     fn write(self, world: &mut World) {
         let mut buffer = BUFFER.lock().unwrap();
         for (e, c) in world.query::<(Entity, &C)>().iter(world) {
-            if !(self.predicate)(&c) {
+            if !(self.predicate)(c) {
                 buffer.push(e);
             }
         }
@@ -183,76 +183,6 @@ impl <'w, 's> RetainCommandsExt for Commands<'w, 's> {
         self.add(RetainRecursiveMut::<C, P> { 
             predicate,
             phantom: PhantomData
-        });
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[derive(Component)]
-    struct DespawnTimer(f32);
-
-    fn setup(mut commands: Commands) {
-        for i in 0..10 {
-            commands.spawn().insert(DespawnTimer(i as f32));
-        }
-    }
-
-    fn update_timer(
-        mut query: Query<&mut DespawnTimer>,
-    ) {
-        query.for_each_mut(|mut dt| {
-            dt.0 -= 4.5;
-        });
-    }
-
-    fn despawn_timer(
-        mut commands: Commands,
-    ) {
-        commands.retain(|dt: &DespawnTimer| { 
-            0. < dt.0
-        });
-    }
-
-    fn despawn_recursive_timer(
-        mut commands: Commands,
-    ) {
-        commands.retain_recursive(|dt: &DespawnTimer| { 
-            0. < dt.0
-        });
-    }
-
-    fn despawn_timer_mut(
-        mut commands: Commands,
-    ) {
-        let delta = -4.5;
-        commands.retain_mut(move |dt: &mut DespawnTimer| { 
-            dt.0 -= delta;
-            0. < dt.0
-        });
-    }
-
-    fn despawn_timer_rec_mut(
-        mut commands: Commands,        
-    ) {
-        let delta = -4.5;
-        commands.retain_recursive_mut(move |dt: &mut DespawnTimer| { 
-            dt.0 -= delta;
-            0. < dt.0
-        });
-    }
-
-    fn despawn_timer_system(
-        mut commands: Commands,        
-        time: Res<Time>,
-    ) {
-        let delta = time.delta_seconds();
-        commands.retain_recursive_mut(move |dt: &mut DespawnTimer| { 
-            dt.0 -= delta;
-            0. < dt.0
         });
     }
 }
