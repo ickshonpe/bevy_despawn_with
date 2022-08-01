@@ -1,7 +1,6 @@
 #[cfg(feature = "retain")]
 pub mod retain;
 
-use bevy::ecs::query::FilterFetch;
 use bevy::ecs::query::WorldQuery;
 use bevy::ecs::system::Command;
 use bevy::prelude::*;
@@ -13,16 +12,16 @@ lazy_static! {
     static ref BUFFER: Mutex<Vec<Entity>> = Mutex::new(vec![]);
 }
 
-struct DespawnAll<F: WorldQuery> where
+struct DespawnAll<F: WorldQuery>
+ where
     F: 'static + Sync + Send,
-    F::Fetch: FilterFetch,
 {
     phantom: PhantomData<F>,    
 }
 
-struct DespawnAllRecursive<F: WorldQuery> where
+struct DespawnAllRecursive<F: WorldQuery>
+ where
     F: 'static + Sync + Send,
-    F::Fetch: FilterFetch,
 {
     phantom: PhantomData<F>,
 }
@@ -30,7 +29,6 @@ struct DespawnAllRecursive<F: WorldQuery> where
 impl <F: WorldQuery> Command for DespawnAll<F> 
 where
     F: Sync + Send,
-    F::Fetch: FilterFetch,
 {
     fn write(self, world: &mut bevy::prelude::World) {
         let mut buffer = BUFFER.lock().unwrap();
@@ -44,7 +42,7 @@ where
 impl <F: WorldQuery> Command for DespawnAllRecursive<F> 
 where
     F: Sync + Send,
-    F::Fetch: FilterFetch,
+  //  F::Fetch: FilterFetch,
 {
     fn write(self, world: &mut bevy::prelude::World) {
         let mut buffer = BUFFER.lock().unwrap();
@@ -58,27 +56,25 @@ where
 pub trait DespawnAllCommandsExt {
     fn despawn_all<F>(&mut self) 
     where 
-        F: WorldQuery + 'static + Sync + Send,
-        F::Fetch: FilterFetch;
+        F: WorldQuery + 'static + Sync + Send;
 
     fn despawn_all_recursive<F>(&mut self) 
     where
-        F: WorldQuery + 'static + Sync + Send,
-        F::Fetch: FilterFetch;
+        F: WorldQuery + 'static + Sync + Send;
 }
 
 impl DespawnAllCommandsExt for Commands<'_, '_> {
     fn despawn_all<F>(&mut self) 
     where 
-        F: WorldQuery + 'static + Sync + Send,
-        F::Fetch: FilterFetch {
+        F: WorldQuery + 'static + Sync + Send
+    {
         self.add(DespawnAll::<F> { phantom: PhantomData });
     }
 
     fn despawn_all_recursive<F>(&mut self) 
     where
         F: WorldQuery + 'static + Sync + Send,
-        F::Fetch: FilterFetch {
+        {
             self.add(DespawnAllRecursive::<F> { phantom: PhantomData });
     }
 }

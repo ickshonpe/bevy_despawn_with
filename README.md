@@ -2,7 +2,9 @@
 
 This crate implements an extension trait on `Commands`, `DespawnAllCommandsExt` which has two methods `despawn_all` and `despawn_all_recursive` that allow you to despawn all entities that satisfy a given query filter with a single statement.
 
-Supports Bevy version 0.7.
+## Version 0.9
+
+Supports Bevy 0.8
 
 ## Version 0.8
 
@@ -159,5 +161,5 @@ and you are ready to go.
 cargo run --example despawn_with
 cargo run --example despawn_without
 cargo run --example retain --features retain
-cargo run --example despawn_timers --features retain
+cargo run --example despawn_timer --features retain
 ```
