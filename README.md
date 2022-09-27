@@ -149,7 +149,7 @@ will be despawned regardless of whether they satisfy the query filter or not.
 Add the following to your project's Cargo.toml `[dependencies]` section:
 
 ```toml
-bevy_despawn_with = "0.7"
+bevy_despawn_with = "0.9"
 ```
 and you are ready to go.
 
