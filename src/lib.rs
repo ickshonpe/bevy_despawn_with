@@ -1,3 +1,4 @@
+pub mod remove;
 #[cfg(feature = "retain")]
 pub mod retain;
 
@@ -8,25 +9,27 @@ use lazy_static::*;
 use std::marker::PhantomData;
 use std::sync::Mutex;
 
+pub use remove::*;
+
 lazy_static! {
     static ref BUFFER: Mutex<Vec<Entity>> = Mutex::new(vec![]);
 }
 
 struct DespawnAll<F: WorldQuery>
- where
-    F: 'static + Sync + Send,
-{
-    phantom: PhantomData<F>,    
-}
-
-struct DespawnAllRecursive<F: WorldQuery>
- where
+where
     F: 'static + Sync + Send,
 {
     phantom: PhantomData<F>,
 }
 
-impl <F: WorldQuery> Command for DespawnAll<F> 
+struct DespawnAllRecursive<F: WorldQuery>
+where
+    F: 'static + Sync + Send,
+{
+    phantom: PhantomData<F>,
+}
+
+impl<F: WorldQuery> Command for DespawnAll<F>
 where
     F: Sync + Send,
 {
@@ -39,10 +42,10 @@ where
     }
 }
 
-impl <F: WorldQuery> Command for DespawnAllRecursive<F> 
+impl<F: WorldQuery> Command for DespawnAllRecursive<F>
 where
     F: Sync + Send,
-  //  F::Fetch: FilterFetch,
+    //  F::Fetch: FilterFetch,
 {
     fn write(self, world: &mut bevy::prelude::World) {
         let mut buffer = BUFFER.lock().unwrap();
@@ -54,27 +57,31 @@ where
 }
 
 pub trait DespawnAllCommandsExt {
-    fn despawn_all<F>(&mut self) 
-    where 
+    fn despawn_all<F>(&mut self)
+    where
         F: WorldQuery + 'static + Sync + Send;
 
-    fn despawn_all_recursive<F>(&mut self) 
+    fn despawn_all_recursive<F>(&mut self)
     where
         F: WorldQuery + 'static + Sync + Send;
 }
 
 impl DespawnAllCommandsExt for Commands<'_, '_> {
-    fn despawn_all<F>(&mut self) 
-    where 
-        F: WorldQuery + 'static + Sync + Send
-    {
-        self.add(DespawnAll::<F> { phantom: PhantomData });
-    }
-
-    fn despawn_all_recursive<F>(&mut self) 
+    fn despawn_all<F>(&mut self)
     where
         F: WorldQuery + 'static + Sync + Send,
-        {
-            self.add(DespawnAllRecursive::<F> { phantom: PhantomData });
+    {
+        self.add(DespawnAll::<F> {
+            phantom: PhantomData,
+        });
+    }
+
+    fn despawn_all_recursive<F>(&mut self)
+    where
+        F: WorldQuery + 'static + Sync + Send,
+    {
+        self.add(DespawnAllRecursive::<F> {
+            phantom: PhantomData,
+        });
     }
 }

@@ -5,22 +5,15 @@ use bevy_despawn_with::retain::*;
 #[derive(Component)]
 struct DespawnTimer(f32);
 
-fn spawn_timers(mut commands: Commands) {    
-    commands.spawn_batch(
-        (1..=10).map(|n| (
-            DespawnTimer(n as f32),
-        ))
-    );
+fn spawn_timers(mut commands: Commands) {
+    commands.spawn_batch((1..=10).map(|n| (DespawnTimer(n as f32),)));
 }
 
-fn update_despawn_timers(
-    mut commands: Commands,
-    time: Res<Time>,        
-) {
+fn update_despawn_timers(mut commands: Commands, time: Res<Time>) {
     let delta = time.delta_seconds();
-    commands.retain::<&mut DespawnTimer, ()>(move |mut dt| { 
+    commands.retain::<&mut DespawnTimer, ()>(move |mut dt| {
         dt.0 -= delta;
-        0. < dt.0   // despawns if false, that is once the time runs out
+        0. < dt.0 // despawns if false, that is once the time runs out
     });
 }
 
@@ -43,9 +36,9 @@ fn update(
 
 fn main() {
     App::new()
-    .add_plugins(MinimalPlugins)
-    .add_startup_system(spawn_timers)
-    .add_system(update_despawn_timers)
-    .add_system(update)
-    .run();
+        .add_plugins(MinimalPlugins)
+        .add_startup_system(spawn_timers)
+        .add_system(update_despawn_timers)
+        .add_system(update)
+        .run();
 }

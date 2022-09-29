@@ -2,6 +2,29 @@
 
 This crate implements an extension trait on `Commands`, `DespawnAllCommandsExt` which has two methods `despawn_all` and `despawn_all_recursive` that allow you to despawn all entities that satisfy a given query filter with a single statement.
 
+## Version 0.10
+
+Adds `RemoveAllCommandsExt` which implements two new methods for Commands
+`remove_all` and `remove_all_filtered` that allow you to
+remove all components of the given type at once.
+
+Usage examples:
+
+*
+    ```rust
+    commands.remove_all::<MyComponent>() 
+    ```
+    Removes every `MyComponent` component from every entity in your Bevy App's World.
+
+*
+    ```rust
+    commands.remove_all_filtered::<
+        MyComponent, 
+        (Changed<MyComponent>, Without<MyPermission>)
+    >();
+    ```
+    Remove every modified `MyComponent` component from every entity that does not also have `MyPermission`.
+
 ## Version 0.9
 
 Supports Bevy 0.8
