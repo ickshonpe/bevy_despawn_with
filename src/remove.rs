@@ -28,27 +28,17 @@ where
 }
 
 pub trait RemoveAllCommandsExt {
-    fn remove_all<C>(&mut self)
-    where
-        C: Component;
-
-    fn remove_all_filtered<C, F>(&mut self)
+    fn remove_all<C, F>(&mut self)
     where
         C: Component,
         F: WorldQuery + 'static + Sync + Send;
 }
 
 impl RemoveAllCommandsExt for Commands<'_, '_> {
-    fn remove_all<C>(&mut self)
-    where
-        C: Component,
-    {
-        self.add(RemoveAll::<C, ()> {
-            phantom: PhantomData,
-        });
-    }
-
-    fn remove_all_filtered<C, F>(&mut self)
+    /// For every entity that has a component of type `MyComponent`
+    /// and passes Filter `F`,
+    /// remove its `MyComponent`.
+    fn remove_all<C, F>(&mut self)
     where
         C: Component,
         F: WorldQuery + 'static + Sync + Send,

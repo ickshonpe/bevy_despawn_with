@@ -2,28 +2,35 @@
 
 This crate implements an extension trait on `Commands`, `DespawnAllCommandsExt` which has two methods `despawn_all` and `despawn_all_recursive` that allow you to despawn all entities that satisfy a given query filter with a single statement.
 
-## Version 0.10
+## Version 0.11 (and 0.10)
 
-Adds `RemoveAllCommandsExt` which implements two new methods for Commands
-`remove_all` and `remove_all_filtered` that allow you to
-remove all components of the given type at once.
+Adds a new `Commands` extension trait `RemoveAllCommandsExt` which implements a method
+`remove_all` that allows you to
+remove a component from multiple filtered entities at once.
 
 Usage examples:
 
 *
     ```rust
-    commands.remove_all::<MyComponent>() 
+    commands.remove_all::<MyComponent, ()>() 
     ```
-    Removes every `MyComponent` component from every entity in your Bevy App's World.
 
+    For every entity that has a component of type `MyComponent`, remove `MyComponent`.
+
+    We have to use the unit type `()` to signify that we want no filtering of entities (except for selecting those that have a `MyComponent`) because Rust doesn't allow default generic parameters on functions.
+    
 *
     ```rust
-    commands.remove_all_filtered::<
+    commands.remove_all::<
         MyComponent, 
         (Changed<MyComponent>, Without<MyPermission>)
     >();
     ```
-    Remove every modified `MyComponent` component from every entity that does not also have `MyPermission`.
+    For every entity that has a changed `MyComponent` component and no `MyPermission` component, removes `MyComponent`.
+
+Version 0.10 has seperate `remove_all` and `remove_all_filtered` functions. Requiring `()` for unfiltered removals is a bit ugly but I prefer the crate to have a smaller footprint.
+
+Added doc comments for all methods.
 
 ## Version 0.9
 
@@ -59,7 +66,7 @@ Remember that Commands are not applied immediately. The DespawnTimer components 
 
 Feature-gated for all its silliness, to enable ```retain``` use:
 ```toml
-bevy_despawn_with = { version = "0.8", features = ["retain"] }
+bevy_despawn_with = { version = "0.11", features = ["retain"] }
 ```
 
 ## Version 0.7
@@ -172,8 +179,13 @@ will be despawned regardless of whether they satisfy the query filter or not.
 Add the following to your project's Cargo.toml `[dependencies]` section:
 
 ```toml
-bevy_despawn_with = "0.9"
+bevy_despawn_with = "0.11"
 ```
+or with the retain feature enabled:
+```toml
+bevy_despawn_with = { version = "0.11", features = ["retain"] }
+```
+
 and you are ready to go.
 
 #
@@ -184,5 +196,11 @@ and you are ready to go.
 cargo run --example despawn_with
 cargo run --example despawn_without
 cargo run --example retain --features retain
-cargo run --example despawn_timer --features retain
+cargo run --example retain_despawn_timer --features retain
+cargo run --example remove_all
 ```
+
+## Future
+
+* ```remove_all_bundles```, not sure how to query for bundles efficiently.
+* Some sort of dreadful ```retain_component``` method.

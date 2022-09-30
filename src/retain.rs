@@ -85,6 +85,11 @@ pub trait RetainCommandsExt<P> {
 }
 
 impl<P> RetainCommandsExt<P> for Commands<'_, '_> {
+    /// Queries the World with a component accessor `Q` and filter `F`,
+    /// Calls P with each query result, P may mutate the components.
+    /// If P returns false, the respective entity is despawned.
+    ///
+    /// Remember that Commands are not applied immediately, nothing will be done until the next stage boundary.
     fn retain<Q, F>(&mut self, predicate: P)
     where
         P: 'static + Sync + Send,
@@ -98,6 +103,11 @@ impl<P> RetainCommandsExt<P> for Commands<'_, '_> {
         });
     }
 
+    /// Queries the World with a component accessor `Q` and filter `F`,
+    /// Calls P with each query result, P may mutate the components.
+    /// If P returns false, the respective entity and all its descandents are despawned.
+    ///
+    /// Remember that Commands are not applied immediately, nothing will be done until the next stage boundary.
     fn retain_recursive<Q, F>(&mut self, predicate: P)
     where
         P: 'static + Sync + Send,

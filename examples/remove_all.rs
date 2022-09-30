@@ -29,8 +29,9 @@ fn main() {
         .add_system(
             (|mut commands: Commands| {
                 println!();
-                println!("Remove all A components from entities with B components");
-                commands.remove_all_filtered::<A, (Changed<A>, With<B>)>(); // 3
+                println!("Remove all changed A components from entities with B components");
+                println!("\t(inserting a component counts as a change).");
+                commands.remove_all::<A, (Changed<A>, With<B>)>(); // 3
             })
             .label("remove"),
         )

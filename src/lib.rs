@@ -45,7 +45,6 @@ where
 impl<F: WorldQuery> Command for DespawnAllRecursive<F>
 where
     F: Sync + Send,
-    //  F::Fetch: FilterFetch,
 {
     fn write(self, world: &mut bevy::prelude::World) {
         let mut buffer = BUFFER.lock().unwrap();
@@ -67,6 +66,7 @@ pub trait DespawnAllCommandsExt {
 }
 
 impl DespawnAllCommandsExt for Commands<'_, '_> {
+    /// Despawn all entities that are selected by the query filter `F`.
     fn despawn_all<F>(&mut self)
     where
         F: WorldQuery + 'static + Sync + Send,
@@ -76,6 +76,11 @@ impl DespawnAllCommandsExt for Commands<'_, '_> {
         });
     }
 
+    /// Despawn all entities that are selected by the query filter `F` and their descendants.
+    ///
+    /// The descendants of entities despawned with `despawn_all_recursive`
+    /// will be despawned regardless of whether they
+    /// satisfy the query filter `F` or not.
     fn despawn_all_recursive<F>(&mut self)
     where
         F: WorldQuery + 'static + Sync + Send,
