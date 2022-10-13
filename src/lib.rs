@@ -90,3 +90,41 @@ impl DespawnAllCommandsExt for Commands<'_, '_> {
         });
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use bevy::ecs::system::CommandQueue;
+
+    use super::*;
+    
+    #[test]
+    fn despawn_all_marked_entities() {
+        #[derive(Component)]
+        struct TheTaintOfEvil;
+
+        // A pure world, at peace.
+        let mut world = World::new();
+        let mut people = vec![];
+        for _ in 0..777 + 666 {
+            people.push(world.spawn().id());
+        }
+
+        // Evil spreads!
+        for i in 0..666 {
+            world.entity_mut(people[i]).insert(TheTaintOfEvil);
+        }
+
+        let mut command_queue = CommandQueue::default();
+        let mut commands = Commands::new(&mut command_queue, &world);
+
+        // A heavenly being with a flaming sword descends. A brutal slaughter!
+        commands.despawn_all::<With<TheTaintOfEvil>>();
+
+        // Only the righteous are spared.
+        assert_eq!(world.entities().len(), 777);
+        assert!(world.query_filtered::<(), With<TheTaintOfEvil>>().is_empty(&world, world.last_change_tick(), world.read_change_tick()));
+
+        // They give thanks.
+    }
+}
