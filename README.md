@@ -179,11 +179,11 @@ will be despawned regardless of whether they satisfy the query filter or not.
 Add the following to your project's Cargo.toml `[dependencies]` section:
 
 ```toml
-bevy_despawn_with = "0.11"
+bevy_despawn_with = "0.12"
 ```
 or with the retain feature enabled:
 ```toml
-bevy_despawn_with = { version = "0.11", features = ["retain"] }
+bevy_despawn_with = { version = "0.12", features = ["retain"] }
 ```
 
 and you are ready to go.

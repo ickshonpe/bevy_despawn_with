@@ -1,4 +1,4 @@
-use super::BUFFER;
+use crate::DespawnBuffer;
 use bevy::ecs::query::Fetch;
 use bevy::ecs::query::WorldQuery;
 use bevy::ecs::query::WorldQueryGats;
@@ -25,15 +25,19 @@ where
     F: WorldQuery + 'static + Sync + Send,
 {
     fn write(mut self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        for (e, c) in world.query_filtered::<(Entity, Q), F>().iter_mut(world) {
-            if !(self.predicate)(c) {
-                buffer.push(e);
+        if !world.contains_resource::<DespawnBuffer>() {
+            world.insert_resource(DespawnBuffer::default());
+        }
+        world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
+            for (e, c) in world.query_filtered::<(Entity, Q), F>().iter_mut(world) {
+                if !(self.predicate)(c) {
+                    buffer.push(e);
+                }
             }
-        }
-        for entity in buffer.drain(..) {
-            world.despawn(entity);
-        }
+            for entity in buffer.drain(..) {
+                world.despawn(entity);
+            }
+        });
     }
 }
 
@@ -56,15 +60,19 @@ where
     F: WorldQuery + 'static + Sync + Send,
 {
     fn write(mut self, world: &mut World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        for (e, c) in world.query_filtered::<(Entity, Q), F>().iter_mut(world) {
-            if !(self.predicate)(c) {
-                buffer.push(e);
+        if !world.contains_resource::<DespawnBuffer>() {
+            world.insert_resource(DespawnBuffer::default());
+        }
+        world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
+            for (e, c) in world.query_filtered::<(Entity, Q), F>().iter_mut(world) {
+                if !(self.predicate)(c) {
+                    buffer.push(e);
+                }
             }
-        }
-        for entity in buffer.drain(..) {
-            despawn_with_children_recursive(world, entity);
-        }
+            for entity in buffer.drain(..) {
+                despawn_with_children_recursive(world, entity);
+            }
+        });
     }
 }
 

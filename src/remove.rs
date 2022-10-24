@@ -3,7 +3,7 @@ use bevy::ecs::system::Command;
 use bevy::prelude::*;
 use std::marker::PhantomData;
 
-use crate::BUFFER;
+use crate::DespawnBuffer;
 
 struct RemoveAll<C, F = ()>
 where
@@ -19,11 +19,15 @@ where
     F: WorldQuery + 'static + Sync + Send,
 {
     fn write(self, world: &mut bevy::prelude::World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(world.query_filtered::<Entity, (With<C>, F)>().iter(world));
-        for entity in buffer.drain(..) {
-            world.entity_mut(entity).remove::<C>();
+        if !world.contains_resource::<DespawnBuffer>() {
+            world.insert_resource(DespawnBuffer::default());
         }
+        world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
+            buffer.extend(world.query_filtered::<Entity, (With<C>, F)>().iter(world));
+            for entity in buffer.drain(..) {
+                world.entity_mut(entity).remove::<C>();
+            }
+        });
     }
 }
 

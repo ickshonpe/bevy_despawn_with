@@ -1,19 +1,16 @@
-pub mod remove;
+mod remove;
 #[cfg(feature = "retain")]
 pub mod retain;
 
 use bevy::ecs::query::WorldQuery;
 use bevy::ecs::system::Command;
 use bevy::prelude::*;
-use lazy_static::*;
 use std::marker::PhantomData;
-use std::sync::Mutex;
 
 pub use remove::*;
 
-lazy_static! {
-    static ref BUFFER: Mutex<Vec<Entity>> = Mutex::new(vec![]);
-}
+#[derive(Default, Deref, DerefMut)]
+struct DespawnBuffer(Vec<Entity>);
 
 struct DespawnAll<F: WorldQuery>
 where
@@ -34,11 +31,15 @@ where
     F: Sync + Send,
 {
     fn write(self, world: &mut bevy::prelude::World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(world.query_filtered::<Entity, F>().iter(world));
-        for entity in buffer.drain(..) {
-            world.despawn(entity);
+        if !world.contains_resource::<DespawnBuffer>() {
+            world.insert_resource(DespawnBuffer::default());
         }
+        world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
+            buffer.extend(world.query_filtered::<Entity, F>().iter(world));
+            for entity in buffer.drain(..) {
+                world.despawn(entity);
+            }
+        });
     }
 }
 
@@ -47,11 +48,15 @@ where
     F: Sync + Send,
 {
     fn write(self, world: &mut bevy::prelude::World) {
-        let mut buffer = BUFFER.lock().unwrap();
-        buffer.extend(world.query_filtered::<Entity, F>().iter(world));
-        for entity in buffer.drain(..) {
-            despawn_with_children_recursive(world, entity);
+        if !world.contains_resource::<DespawnBuffer>() {
+            world.insert_resource(DespawnBuffer::default());
         }
+        world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
+            buffer.extend(world.query_filtered::<Entity, F>().iter(world));
+            for entity in buffer.drain(..) {
+                despawn_with_children_recursive(world, entity);
+            }
+        });
     }
 }
 
@@ -120,6 +125,8 @@ mod tests {
 
         // A heavenly being with a flaming sword descends. A brutal slaughter!
         commands.despawn_all::<With<TheTaintOfEvil>>();
+
+        command_queue.apply(&mut world);
 
         // Only the righteous are spared.
         assert_eq!(world.entities().len(), 777);
