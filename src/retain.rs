@@ -25,9 +25,7 @@ where
     F: WorldQuery + 'static + Sync + Send,
 {
     fn write(mut self, world: &mut World) {
-        if !world.contains_resource::<DespawnBuffer>() {
-            world.insert_resource(DespawnBuffer::default());
-        }
+        world.init_resource::<DespawnBuffer>();
         world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
             for (e, c) in world.query_filtered::<(Entity, Q), F>().iter_mut(world) {
                 if !(self.predicate)(c) {
@@ -60,9 +58,7 @@ where
     F: WorldQuery + 'static + Sync + Send,
 {
     fn write(mut self, world: &mut World) {
-        if !world.contains_resource::<DespawnBuffer>() {
-            world.insert_resource(DespawnBuffer::default());
-        }
+        world.init_resource::<DespawnBuffer>();
         world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
             for (e, c) in world.query_filtered::<(Entity, Q), F>().iter_mut(world) {
                 if !(self.predicate)(c) {

@@ -31,9 +31,7 @@ where
     F: Sync + Send,
 {
     fn write(self, world: &mut bevy::prelude::World) {
-        if !world.contains_resource::<DespawnBuffer>() {
-            world.insert_resource(DespawnBuffer::default());
-        }
+        world.init_resource::<DespawnBuffer>();
         world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
             buffer.extend(world.query_filtered::<Entity, F>().iter(world));
             for entity in buffer.drain(..) {
@@ -48,9 +46,7 @@ where
     F: Sync + Send,
 {
     fn write(self, world: &mut bevy::prelude::World) {
-        if !world.contains_resource::<DespawnBuffer>() {
-            world.insert_resource(DespawnBuffer::default());
-        }
+        world.init_resource::<DespawnBuffer>();
         world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
             buffer.extend(world.query_filtered::<Entity, F>().iter(world));
             for entity in buffer.drain(..) {

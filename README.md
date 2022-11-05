@@ -66,7 +66,7 @@ Remember that Commands are not applied immediately. The DespawnTimer components 
 
 Feature-gated for all its silliness, to enable ```retain``` use:
 ```toml
-bevy_despawn_with = { version = "0.11", features = ["retain"] }
+bevy_despawn_with = { version = "0.12.1", features = ["retain"] }
 ```
 
 ## Version 0.7
@@ -179,11 +179,11 @@ will be despawned regardless of whether they satisfy the query filter or not.
 Add the following to your project's Cargo.toml `[dependencies]` section:
 
 ```toml
-bevy_despawn_with = "0.12"
+bevy_despawn_with = "0.12.1"
 ```
 or with the retain feature enabled:
 ```toml
-bevy_despawn_with = { version = "0.12", features = ["retain"] }
+bevy_despawn_with = { version = "0.12.1", features = ["retain"] }
 ```
 
 and you are ready to go.
@@ -199,8 +199,3 @@ cargo run --example retain --features retain
 cargo run --example retain_despawn_timer --features retain
 cargo run --example remove_all
 ```
-
-## Future
-
-* ```remove_all_bundles```, not sure how to query for bundles efficiently.
-* Some sort of dreadful ```retain_component``` method.

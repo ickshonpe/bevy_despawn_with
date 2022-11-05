@@ -1,5 +1,6 @@
 use bevy::ecs::query::WorldQuery;
 use bevy::ecs::system::Command;
+use bevy::ecs::system::Despawn;
 use bevy::prelude::*;
 use std::marker::PhantomData;
 
@@ -19,9 +20,7 @@ where
     F: WorldQuery + 'static + Sync + Send,
 {
     fn write(self, world: &mut bevy::prelude::World) {
-        if !world.contains_resource::<DespawnBuffer>() {
-            world.insert_resource(DespawnBuffer::default());
-        }
+        world.init_resource::<DespawnBuffer>();
         world.resource_scope(|world, mut buffer: Mut<DespawnBuffer>| {
             buffer.extend(world.query_filtered::<Entity, (With<C>, F)>().iter(world));
             for entity in buffer.drain(..) {
