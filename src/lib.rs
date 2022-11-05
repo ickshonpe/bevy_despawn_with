@@ -92,13 +92,12 @@ impl DespawnAllCommandsExt for Commands<'_, '_> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use bevy::ecs::system::CommandQueue;
 
     use super::*;
-    
+
     #[test]
     fn despawn_all_marked_entities() {
         #[derive(Component)]
@@ -126,7 +125,11 @@ mod tests {
 
         // Only the righteous are spared.
         assert_eq!(world.entities().len(), 777);
-        assert!(world.query_filtered::<(), With<TheTaintOfEvil>>().is_empty(&world, world.last_change_tick(), world.read_change_tick()));
+        assert!(world.query_filtered::<(), With<TheTaintOfEvil>>().is_empty(
+            &world,
+            world.last_change_tick(),
+            world.read_change_tick()
+        ));
 
         // They give thanks.
     }
