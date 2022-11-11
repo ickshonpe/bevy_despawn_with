@@ -6,7 +6,7 @@ license = "MIT OR Apache-2.0"
 keywords = ["bevy", "gamedev", "despawn", "ecs"]
 categories = ["game-development"]
 repository = "https://github.com/ickshonpe/bevy_despawn_with"
-description = "Commands extension trait for easier batch despawning."
+description = "Commands extension trait for despawning multiple entities"
 readme = "README.md"
 
 [dependencies]
