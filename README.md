@@ -1,6 +1,10 @@
 # Bevy Despawn With
 
-This crate implements an extension trait on `Commands`, `DespawnAllCommandsExt` which has two methods `despawn_all` and `despawn_all_recursive` that despawn all entities satisfying a given query filter:
+[![crates.io](https://img.shields.io/crates/v/bevy_despawn_with)](https://crates.io/crates/bevy_despawn_with)
+[![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/ickshonpe/bevy_despawn_with)
+[![crates.io](https://img.shields.io/crates/d/bevy_despawn_with)](https://crates.io/crates/bevy_despawn_with)
+
+This crate implements an extension trait on `Commands`, `DespawnAllCommandsExt` which has two methods `despawn_all` and `despawn_all_recursive` for despawning multiple entities:
 
 ```rust
 fn despawn_system(
@@ -10,6 +14,7 @@ fn despawn_system(
 }
 ```
 
+
 ## Usage
 
 Add the dependency to your project's Cargo.toml `[dependencies]` section:
@@ -17,6 +22,8 @@ Add the dependency to your project's Cargo.toml `[dependencies]` section:
 ```toml
 bevy_despawn_with = "0.13"
 ```
+
+Then despawn some things:
 
 ```rust
 use bevy_despawn_with::DespawnAllCommandsExt;
@@ -52,4 +59,4 @@ cargo run --example remove_all
 
 ## Notes
 
-Versions >= 0.9 support Bevy 0.8, 0.6 to 0.8 support Bevy 0.7, versions < 0.5 support Bevy 0.5.
+Supports Bevy 0.8
