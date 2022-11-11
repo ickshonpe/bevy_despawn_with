@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_despawn_with::*;
+use bevy_despawn_with::remove::*;
 
 #[derive(Component)]
 struct A;

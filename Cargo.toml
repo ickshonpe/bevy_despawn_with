@@ -1,12 +1,12 @@
 [package]
 name = "bevy_despawn_with"
-version = "0.12.1"
+version = "0.13.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 keywords = ["bevy", "gamedev", "despawn", "ecs"]
 categories = ["game-development"]
 repository = "https://github.com/ickshonpe/bevy_despawn_with"
-description = "Bevy extension trait for despawning marked entities"
+description = "Commands extension trait for easier batch despawning."
 readme = "README.md"
 
 [dependencies]
@@ -14,10 +14,15 @@ bevy = { version = "0.8", default_features = false }
 
 [features]
 retain = []
+remove = []
 
 [[example]]
 name = "retain"
 required-features = ["retain"]
+
+[[example]]
+name = "remove"
+required-features = ["remove"]
 
 [[example]]
 name = "retain_despawn_timer"

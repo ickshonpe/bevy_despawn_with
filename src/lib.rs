@@ -1,4 +1,5 @@
-mod remove;
+#[cfg(feature = "remove")]
+pub mod remove;
 #[cfg(feature = "retain")]
 pub mod retain;
 
@@ -6,8 +7,6 @@ use bevy::ecs::query::WorldQuery;
 use bevy::ecs::system::Command;
 use bevy::prelude::*;
 use std::marker::PhantomData;
-
-pub use remove::*;
 
 #[derive(Default, Deref, DerefMut)]
 struct DespawnBuffer(Vec<Entity>);
