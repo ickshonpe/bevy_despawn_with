@@ -14,13 +14,12 @@ fn despawn_system(
 }
 ```
 
-
 ## Usage
 
 Add the dependency to your project's Cargo.toml `[dependencies]` section:
 
 ```toml
-bevy_despawn_with = "0.13"
+bevy_despawn_with = "0.14"
 ```
 
 Then despawn some things:
@@ -41,22 +40,13 @@ fn despawn_system(mut commands: Commands) {
 }
 ```
 
-## Optional Features
-
-```toml
-bevy_despawn_with = { version = "0.13", features = ["retain, remove"] }
-```
-
 ## Examples
 
 ```
 cargo run --example despawn_with
 cargo run --example despawn_without
-cargo run --example retain --features retain
-cargo run --example retain_despawn_timer --features retain
-cargo run --example remove_all
 ```
 
 ## Notes
 
-Supports Bevy 0.8
+Supports Bevy 0.9

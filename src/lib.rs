@@ -1,31 +1,27 @@
-#[cfg(feature = "remove")]
-pub mod remove;
-#[cfg(feature = "retain")]
-pub mod retain;
-
-use bevy::ecs::query::WorldQuery;
+use bevy::ecs::query::ReadOnlyWorldQuery;
 use bevy::ecs::system::Command;
 use bevy::prelude::*;
 use std::marker::PhantomData;
 
 #[derive(Default, Deref, DerefMut)]
+#[derive(Resource)]
 struct DespawnBuffer(Vec<Entity>);
 
-struct DespawnAll<F: WorldQuery>
+struct DespawnAll<F: ReadOnlyWorldQuery>
 where
     F: 'static + Sync + Send,
 {
     phantom: PhantomData<F>,
 }
 
-struct DespawnAllRecursive<F: WorldQuery>
+struct DespawnAllRecursive<F: ReadOnlyWorldQuery>
 where
     F: 'static + Sync + Send,
 {
     phantom: PhantomData<F>,
 }
 
-impl<F: WorldQuery> Command for DespawnAll<F>
+impl<F: ReadOnlyWorldQuery> Command for DespawnAll<F>
 where
     F: Sync + Send,
 {
@@ -40,7 +36,7 @@ where
     }
 }
 
-impl<F: WorldQuery> Command for DespawnAllRecursive<F>
+impl<F: ReadOnlyWorldQuery> Command for DespawnAllRecursive<F>
 where
     F: Sync + Send,
 {
@@ -58,18 +54,18 @@ where
 pub trait DespawnAllCommandsExt {
     fn despawn_all<F>(&mut self)
     where
-        F: WorldQuery + 'static + Sync + Send;
+        F: ReadOnlyWorldQuery + 'static + Sync + Send;
 
     fn despawn_all_recursive<F>(&mut self)
     where
-        F: WorldQuery + 'static + Sync + Send;
+        F: ReadOnlyWorldQuery + 'static + Sync + Send;
 }
 
 impl DespawnAllCommandsExt for Commands<'_, '_> {
     /// Despawn all entities that are selected by the query filter `F`.
     fn despawn_all<F>(&mut self)
     where
-        F: WorldQuery + 'static + Sync + Send,
+        F: ReadOnlyWorldQuery + 'static + Sync + Send,
     {
         self.add(DespawnAll::<F> {
             phantom: PhantomData,
@@ -83,7 +79,7 @@ impl DespawnAllCommandsExt for Commands<'_, '_> {
     /// satisfy the query filter `F` or not.
     fn despawn_all_recursive<F>(&mut self)
     where
-        F: WorldQuery + 'static + Sync + Send,
+        F: ReadOnlyWorldQuery + 'static + Sync + Send,
     {
         self.add(DespawnAllRecursive::<F> {
             phantom: PhantomData,
@@ -105,8 +101,8 @@ mod tests {
         // A pure world, at peace.
         let mut world = World::new();
         let mut people = vec![];
-        for _ in 0..777 + 666 {
-            people.push(world.spawn().id());
+        for _ in 0..777 + 666 {            
+            people.push(world.spawn_empty().id());
         }
 
         // Evil spreads!
