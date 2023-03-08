@@ -3,8 +3,7 @@ use bevy::ecs::system::Command;
 use bevy::prelude::*;
 use std::marker::PhantomData;
 
-#[derive(Default, Deref, DerefMut)]
-#[derive(Resource)]
+#[derive(Default, Deref, DerefMut, Resource)]
 struct DespawnBuffer(Vec<Entity>);
 
 struct DespawnAll<F: ReadOnlyWorldQuery>
@@ -101,7 +100,7 @@ mod tests {
         // A pure world, at peace.
         let mut world = World::new();
         let mut people = vec![];
-        for _ in 0..777 + 666 {            
+        for _ in 0..777 + 666 {
             people.push(world.spawn_empty().id());
         }
 

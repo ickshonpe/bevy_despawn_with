@@ -19,7 +19,7 @@ fn despawn_system(
 Add the dependency to your project's Cargo.toml `[dependencies]` section:
 
 ```toml
-bevy_despawn_with = "0.14"
+bevy_despawn_with = "0.15.0"
 ```
 
 Then despawn some things:
@@ -49,4 +49,4 @@ cargo run --example despawn_without
 
 ## Notes
 
-Supports Bevy 0.9
+Supports Bevy 0.10

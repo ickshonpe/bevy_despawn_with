@@ -25,6 +25,9 @@ fn count(query_a: Query<&A>, query_b: Query<&B>, query_ab: Query<(&A, &B)>) {
     println!("\tnumber of entities with both components A and B = {ab_n}");
 }
 
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
+struct DespawnSet;
+
 fn main() {
     App::new()
         .add_startup_system(|mut commands: Commands| {
@@ -34,18 +37,15 @@ fn main() {
             commands.spawn_batch((0..10).map(|_| (B,)));
             println!("Spawned 30 entities:");
         })
-        .add_system(count.before("despawn")) // 2
+        .add_system(count.before(DespawnSet)) // 2
         .add_system(
             (|mut commands: Commands| {
                 commands.despawn_all::<(With<A>, With<B>)>(); // 3
                 println!();
                 println!("After despawning all entities with both components A and B:");
             })
-            .label("despawn"),
+            .in_set(DespawnSet),
         )
-        .add_system_to_stage(
-            CoreStage::PostUpdate,
-            count.after("despawn"), // 4
-        )
+        .add_system(count.after(DespawnSet).in_base_set(CoreSet::PostUpdate))
         .run();
 }
